@@ -1,5 +1,8 @@
+import Highlight from '@tiptap/extension-highlight';
+import Typography from '@tiptap/extension-typography';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
+
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db, Note } from '../lib/dexie';
@@ -14,13 +17,19 @@ export default function Home() {
   const [noteState, setNoteState] = useState<'saved' | 'unsaved' | 'unknown'>('unknown');
 
   const editor = useEditor({
-    extensions: [StarterKit.configure()],
+    extensions: [Highlight, Typography, StarterKit.configure({})],
+    editorProps: {
+        attributes: {
+          class: 'prose prose-sm/6 sm:prose-base/6 lg:prose-lg/6 xl:prose-2xl/6 m-5/6 leading-none focus:outline-none',
+        },
+      },
     onUpdate: ({ editor }) => {
       setCurrentNote(prev => ({
         ...prev,
         content: editor.getHTML()
       }));
-    }
+    },
+ 
   });
 
   const handleUpdateNote = async (id: number) => {
@@ -153,7 +162,7 @@ export default function Home() {
                 className="font-bold text-lg text-neutral-800 outline-none w-full"
               />
             </div>
-            <div className="w-full h-full p-4">
+            <div className="w-full h-full p-4 ">
               <EditorContent
                 editor={editor}
                 className="w-full h-full outline-none bg-slate-50 rounded-lg border border-neutral-300 p-4"
