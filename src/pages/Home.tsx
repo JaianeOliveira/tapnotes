@@ -1,3 +1,5 @@
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useEffect, useState } from 'react';
 import { db, Note } from '../lib/dexie';
@@ -7,10 +9,19 @@ export default function Home() {
     title: '',
     content: '',
   });
+
   const notes = useLiveQuery(() => db.notes.toArray());
-  const [noteState, setNoteState] = useState<'saved' | 'unsaved' | 'unknown'>(
-    'unknown'
-  );
+  const [noteState, setNoteState] = useState<'saved' | 'unsaved' | 'unknown'>('unknown');
+
+  const editor = useEditor({
+    extensions: [StarterKit.configure()],
+    onUpdate: ({ editor }) => {
+      setCurrentNote(prev => ({
+        ...prev,
+        content: editor.getHTML()
+      }));
+    }
+  });
 
   const handleUpdateNote = async (id: number) => {
     try {
@@ -18,6 +29,7 @@ export default function Home() {
         ...currentNote,
         updated_at: new Date().toISOString(),
       });
+      setNoteState('saved');
     } catch (err) {
       console.log(err);
     }
@@ -37,6 +49,7 @@ export default function Home() {
         ...note,
         id: id,
       });
+      editor?.commands.setContent('');
     } catch (err) {
       console.log(err);
     }
@@ -46,6 +59,7 @@ export default function Home() {
     try {
       await db.notes.delete(id);
       setCurrentNote({});
+      editor?.commands.clearContent();
     } catch (err) {
       console.log(err);
     }
@@ -59,22 +73,25 @@ export default function Home() {
         return 'As alterações não estão salvas';
       case 'unknown':
         return '';
+      default:
+        return '';
     }
   };
 
   useEffect(() => {
     if (!currentNote.id) {
       setNoteState('unknown');
-    } else if (
-      currentNote.id &&
-      currentNote.content ===
-        notes?.find((note) => note.id === currentNote.id)?.content &&
-      currentNote.title ===
-        notes?.find((note) => note.id === currentNote.id)?.title
-    ) {
-      setNoteState('saved');
     } else {
-      setNoteState('unsaved');
+      const noteFromDb = notes?.find(note => note.id === currentNote.id);
+      if (noteFromDb) {
+        if (currentNote.content === noteFromDb.content && currentNote.title === noteFromDb.title) {
+          setNoteState('saved');
+        } else {
+          setNoteState('unsaved');
+        }
+      } else {
+        setNoteState('unsaved'); // Considera 'unsaved' se a nota não for encontrada
+      }
     }
   }, [currentNote, notes]);
 
@@ -104,6 +121,7 @@ export default function Home() {
                 key={note.id}
                 onClick={() => {
                   setCurrentNote(note);
+                  editor?.commands.setContent(note.content);
                 }}
                 className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300"
               >
@@ -131,27 +149,15 @@ export default function Home() {
                     title: e.target.value,
                   }));
                 }}
-                placeholder="Título da Nota"
+                placeholder="Título da Nota"
                 className="font-bold text-lg text-neutral-800 outline-none w-full"
               />
             </div>
             <div className="w-full h-full p-4">
-              <form>
-                {currentNote.id && (
-                  <textarea
-                    name="newnote"
-                    value={currentNote.content}
-                    onChange={(e) => {
-                      setCurrentNote((prev) => ({
-                        ...prev,
-                        content: e.target.value,
-                      }));
-                    }}
-                    placeholder="Escreva sua nota"
-                    className="w-full border border-neutral-300 px-4 py-2 rounded-lg shadow-md"
-                  ></textarea>
-                )}
-              </form>
+              <EditorContent
+                editor={editor}
+                className="w-full h-full outline-none bg-slate-50 rounded-lg border border-neutral-300 p-4"
+              />
             </div>
           </>
         )}
