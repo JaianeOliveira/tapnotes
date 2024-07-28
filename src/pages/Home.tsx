@@ -273,7 +273,7 @@ export default function Home() {
                 <div className="inline-flex gap-2 items-center">
                   <label
                     htmlFor="import-html"
-                    className="flex gap-2 items-center px-4 py-1 bg-indigo-500 text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-indigo-600"
+                    className="flex gap-2 items-center px-4 py-1 text-neutral-500  text-sm font-medium rounded-lg cursor-pointer"
                   >
                     <Upload size={16} />
                     Importar HTML
