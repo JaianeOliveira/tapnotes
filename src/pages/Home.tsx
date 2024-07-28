@@ -1,11 +1,46 @@
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Highlight from '@tiptap/extension-highlight';
+import Image from '@tiptap/extension-image';
+import Link from '@tiptap/extension-link';
+import Subscript from '@tiptap/extension-subscript';
+import Superscript from '@tiptap/extension-superscript';
+import Table from '@tiptap/extension-table';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import TableRow from '@tiptap/extension-table-row';
+import TaskItem from '@tiptap/extension-task-item';
+import TaskList from '@tiptap/extension-task-list';
 import Typography from '@tiptap/extension-typography';
+import Underline from '@tiptap/extension-underline';
+import Youtube from '@tiptap/extension-youtube';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-
 import { useLiveQuery } from 'dexie-react-hooks';
+import { common, createLowlight } from 'lowlight';
+import {
+  Bold,
+  Code,
+  Heading1,
+  Heading2,
+  Heading3,
+  Highlighter,
+  Italic,
+  List,
+  ListChecks,
+  ListOrdered,
+  MessageSquareQuote,
+  Minus,
+  Strikethrough,
+  Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon,
+  Table as TableIcon,
+  Terminal,
+  Underline as UnderlineIcon
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { db, Note } from '../lib/dexie';
+
+const lowlight = createLowlight(common);
 
 export default function Home() {
   const [currentNote, setCurrentNote] = useState<Partial<Note>>({
@@ -14,22 +49,65 @@ export default function Home() {
   });
 
   const notes = useLiveQuery(() => db.notes.toArray());
-  const [noteState, setNoteState] = useState<'saved' | 'unsaved' | 'unknown'>('unknown');
+  const [noteState, setNoteState] = useState<'saved' | 'unsaved' | 'unknown'>(
+    'unknown'
+  );
 
   const editor = useEditor({
-    extensions: [Highlight, Typography, StarterKit.configure({})],
+    extensions: [
+      Highlight,
+      Typography,
+      StarterKit.configure({}),
+      CodeBlockLowlight.configure({
+        lowlight,
+        languageClassPrefix: 'language-',
+        defaultLanguage: 'plaintext',
+      }),
+      Image.configure({
+        inline: true,
+        allowBase64: true,
+      }),
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
+      Youtube.configure({}),
+      Highlight.configure({
+        multicolor: true,
+      }),
+      Link.configure({
+        protocols: ['ftp', 'mailto',{
+          scheme: 'tel',
+          optionalSlashes: true,
+        },],
+        defaultProtocol: 'https',
+        HTMLAttributes: {
+          target: '_blank',
+          rel: 'noopener noreferrer',
+        }
+      }),
+      Subscript,
+      Superscript,
+      Underline
+    ],
     editorProps: {
-        attributes: {
-          class: 'prose prose-sm/6 sm:prose-base/6 lg:prose-lg/6 xl:prose-2xl/6 m-5/6 leading-none focus:outline-none',
-        },
+      attributes: {
+        class:
+          'prose prose-sm/6 sm:prose-base/6 lg:prose-lg/6 xl:prose-2xl/6 m-5/6 leading-none focus:outline-none',
       },
+    },
     onUpdate: ({ editor }) => {
-      setCurrentNote(prev => ({
+      setCurrentNote((prev) => ({
         ...prev,
-        content: editor.getHTML()
+        content: editor.getHTML(),
       }));
     },
- 
   });
 
   const handleUpdateNote = async (id: number) => {
@@ -91,9 +169,12 @@ export default function Home() {
     if (!currentNote.id) {
       setNoteState('unknown');
     } else {
-      const noteFromDb = notes?.find(note => note.id === currentNote.id);
+      const noteFromDb = notes?.find((note) => note.id === currentNote.id);
       if (noteFromDb) {
-        if (currentNote.content === noteFromDb.content && currentNote.title === noteFromDb.title) {
+        if (
+          currentNote.content === noteFromDb.content &&
+          currentNote.title === noteFromDb.title
+        ) {
           setNoteState('saved');
         } else {
           setNoteState('unsaved');
@@ -162,10 +243,121 @@ export default function Home() {
                 className="font-bold text-lg text-neutral-800 outline-none w-full"
               />
             </div>
-            <div className="w-full h-full p-4 ">
+            <div className="p-4 flex gap-2 items-center bg-neutral-100 border-b border-neutral-300">
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Heading1 size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Heading2 size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Heading3 size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Bold size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Italic size={16} />
+              </button>
+              
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Strikethrough size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <UnderlineIcon size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <SubscriptIcon size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <SuperscriptIcon size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <MessageSquareQuote size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <List size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <ListOrdered size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <ListChecks size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Code size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Terminal size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Minus size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <TableIcon size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Highlighter size={16} />
+              </button>
+            </div>
+            <div className="w-full h-full p-4">
               <EditorContent
                 editor={editor}
-                className="w-full h-full outline-none bg-slate-50 rounded-lg border border-neutral-300 p-4"
+                className="w-full h-full outline-none bg-white p-4 border border-neutral-200 rounded-md"
               />
             </div>
           </>
