@@ -13,5 +13,8 @@ export default {
   plugins: [
     // eslint-disable-next-line no-undef
     require('@tailwindcss/typography'),
+    // eslint-disable-next-line no-undef
+    require('tailwind-scrollbar'),
+
   ],
 }

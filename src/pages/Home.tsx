@@ -2,6 +2,7 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Highlight from '@tiptap/extension-highlight';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
 import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import Table from '@tiptap/extension-table';
@@ -35,9 +36,10 @@ import {
   Superscript as SuperscriptIcon,
   Table as TableIcon,
   Terminal,
-  Underline as UnderlineIcon
+  Underline as UnderlineIcon,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 import { db, Note } from '../lib/dexie';
 
 const lowlight = createLowlight(common);
@@ -82,24 +84,33 @@ export default function Home() {
         multicolor: true,
       }),
       Link.configure({
-        protocols: ['ftp', 'mailto',{
-          scheme: 'tel',
-          optionalSlashes: true,
-        },],
+        protocols: [
+          'ftp',
+          'mailto',
+          {
+            scheme: 'tel',
+            optionalSlashes: true,
+          },
+        ],
         defaultProtocol: 'https',
         HTMLAttributes: {
           target: '_blank',
           rel: 'noopener noreferrer',
-        }
+        },
       }),
       Subscript,
       Superscript,
-      Underline
+      Underline,
+      Placeholder.configure({
+        placeholder: "Escreava algo aqui...",
+        emptyEditorClass: 'is-editor-empty',
+
+      })
     ],
     editorProps: {
       attributes: {
         class:
-          'prose prose-sm/6 sm:prose-base/6 lg:prose-lg/6 xl:prose-2xl/6 m-5/6 leading-none focus:outline-none',
+          'prose prose-sm/6 sm:prose-base/6 lg:prose-lg/6 xl:prose-2xl/6 m-5 leading-none focus:outline-none',
       },
     },
     onUpdate: ({ editor }) => {
@@ -117,6 +128,7 @@ export default function Home() {
         updated_at: new Date().toISOString(),
       });
       setNoteState('saved');
+      toast.success('Alterações salvas!');
     } catch (err) {
       console.log(err);
     }
@@ -147,6 +159,7 @@ export default function Home() {
       await db.notes.delete(id);
       setCurrentNote({});
       editor?.commands.clearContent();
+      toast.success('Nota excluída com sucesso!');
     } catch (err) {
       console.log(err);
     }
@@ -186,8 +199,8 @@ export default function Home() {
   }, [currentNote, notes]);
 
   return (
-    <div className="grid grid-cols-5 min-h-[100vh] max-h-[100vh] w-full">
-      <div className="col-span-1 h-full border-r border-neutral-300 bg-neutral-100 shadow-md min-h-[100vh] max-h-[100vh] flex flex-col">
+    <div className="grid grid-cols-5 h-[100vh] w-full overflow-hidden">
+      <div className="col-span-1 h-full border-r border-neutral-300 bg-neutral-100 shadow-md flex flex-col">
         <div className="p-4 text-neutral-700 flex gap-4 items-center justify-between border-b border-b-neutral-200">
           <h1 className="text-lg font-extrabold tracking-wider">tapnotes;</h1>
           <button
@@ -198,7 +211,8 @@ export default function Home() {
             Criar Nota
           </button>
         </div>
-        <ul className="flex-grow flex flex-col gap-2 w-full p-4 mb-4 overflow-y-auto">
+        <ul className="flex-grow flex flex-col gap-2 w-full p-4 mb-4 overflow-y-auto h-0">
+          {' '}
           {notes
             ?.sort((a, b) => {
               return (
@@ -213,14 +227,14 @@ export default function Home() {
                   setCurrentNote(note);
                   editor?.commands.setContent(note.content);
                 }}
-                className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300"
+                className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 {note.title}
               </li>
             ))}
         </ul>
       </div>
-      <div className="col-span-4 w-full bg-neutral-50 flex flex-col justify-between">
+      <div className="col-span-4 w-full bg-neutral-50 flex flex-col">
         {!currentNote.id ? (
           <div className="w-full h-full flex items-center justify-center">
             <p className="text-sm italic text-neutral-400">
@@ -274,18 +288,17 @@ export default function Home() {
               >
                 <Italic size={16} />
               </button>
-              
-              <button
-                type="button"
-                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-              >
-                <Strikethrough size={16} />
-              </button>
               <button
                 type="button"
                 className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
               >
                 <UnderlineIcon size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <Strikethrough size={16} />
               </button>
               <button
                 type="button"
@@ -298,12 +311,6 @@ export default function Home() {
                 className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
               >
                 <SuperscriptIcon size={16} />
-              </button>
-              <button
-                type="button"
-                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-              >
-                <MessageSquareQuote size={16} />
               </button>
               <button
                 type="button"
@@ -327,6 +334,18 @@ export default function Home() {
                 type="button"
                 className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
               >
+                <Highlighter size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
+                <TableIcon size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
                 <Code size={16} />
               </button>
               <button
@@ -339,58 +358,47 @@ export default function Home() {
                 type="button"
                 className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
               >
+                <MessageSquareQuote size={16} />
+              </button>
+              <button
+                type="button"
+                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+              >
                 <Minus size={16} />
               </button>
-              <button
-                type="button"
-                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-              >
-                <TableIcon size={16} />
-              </button>
-              <button
-                type="button"
-                className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-              >
-                <Highlighter size={16} />
-              </button>
             </div>
-            <div className="w-full h-full p-4">
-              <EditorContent
-                editor={editor}
-                className="w-full h-full outline-none bg-white p-4 border border-neutral-200 rounded-md"
-              />
+            <div className="flex-grow p-4 overflow-y-auto h-0">
+              {' '}
+              {/* Updated flex-grow and overflow */}
+              <EditorContent editor={editor} />
+            </div>
+            <div className="px-4 py-2 border-t border-neutral-300 flex items-center justify-between">
+              <p className="text-xs italic text-neutral-400">
+                {getNoteState()}
+              </p>
+              <div className="flex gap-2 text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDeleteNote(currentNote.id!);
+                  }}
+                  className="text-red-500 px-4 py-1 font-medium"
+                >
+                  Excluir nota
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleUpdateNote(currentNote.id!);
+                  }}
+                  className="bg-indigo-500 px-4 py-1 rounded-md shadow-md text-neutral-50 font-semibold"
+                >
+                  Salvar
+                </button>
+              </div>
             </div>
           </>
         )}
-
-        <div className="w-full flex items-center justify-between px-4 py-2 border-t border-t-neutral-300 bg-neutral-100">
-          <p className="text-sm text-neutral-500">{getNoteState()}</p>
-
-          <div className="flex gap-4 items-center">
-            <button
-              type="button"
-              onClick={() => {
-                if (currentNote.id) {
-                  handleDeleteNote(currentNote.id);
-                }
-              }}
-              className="text-red-600 hover:brightness-105 transition-all duration-300 text-sm"
-            >
-              Excluir nota
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (currentNote.id) {
-                  handleUpdateNote(currentNote.id);
-                }
-              }}
-              className="bg-indigo-500 px-4 py-1 rounded-md text-neutral-50 font-medium hover:brightness-105 transition-all duration-300 text-sm"
-            >
-              Salvar
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
