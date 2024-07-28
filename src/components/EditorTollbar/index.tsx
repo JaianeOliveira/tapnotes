@@ -6,6 +6,13 @@ export const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
         return null;
     }
 
+    const handleSubscript = () => 
+      editor.chain().focus().toggleSubscript().run()
+
+    const handleSuperscript = () => 
+      editor.chain().focus().toggleSuperscript().run()
+    
+
     return <>
          <div className="p-4 flex gap-2 items-center bg-neutral-100 border-b border-neutral-300">
               <button
@@ -53,12 +60,14 @@ export const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
               <button
                 type="button"
                 className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+                onClick={handleSubscript}
               >
                 <SubscriptIcon size={16} />
               </button>
               <button
                 type="button"
                 className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+                onClick={handleSuperscript}
               >
                 <SuperscriptIcon size={16} />
               </button>

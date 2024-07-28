@@ -18,9 +18,9 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { common, createLowlight } from 'lowlight';
-import { useEffect, useState } from 'react';
+import { Upload } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import TurndownService from "turndown";
 import { EditorToolbar } from '../components/EditorTollbar';
 import { db, Note } from '../lib/dexie';
 
@@ -41,7 +41,7 @@ export default function Home() {
     extensions: [
       Highlight,
       Typography,
-      StarterKit.configure({}),
+      StarterKit,
       CodeBlockLowlight.configure({
         lowlight,
         languageClassPrefix: 'language-',
@@ -66,14 +66,7 @@ export default function Home() {
         multicolor: true,
       }),
       Link.configure({
-        protocols: [
-          'ftp',
-          'mailto',
-          {
-            scheme: 'tel',
-            optionalSlashes: true,
-          },
-        ],
+        protocols: ['ftp', 'mailto', { scheme: 'tel', optionalSlashes: true }],
         defaultProtocol: 'https',
         HTMLAttributes: {
           target: '_blank',
@@ -84,16 +77,10 @@ export default function Home() {
       Superscript,
       Underline,
       Placeholder.configure({
-        placeholder: 'Escreava algo aqui...',
+        placeholder: 'Escreva algo aqui...',
         emptyEditorClass: 'is-editor-empty',
       }),
     ],
-    editorProps: {
-      attributes: {
-        class:
-          'prose prose-sm/6 sm:prose-base/6 lg:prose-lg/6 xl:prose-2xl/6 m-5 leading-none focus:outline-none',
-      },
-    },
     onUpdate: ({ editor }) => {
       setCurrentNote((prev) => ({
         ...prev,
@@ -135,19 +122,16 @@ export default function Home() {
     }
   };
 
-  const exportToMarkdown = () => {
-    const turndownService = new TurndownService();
-    const markdown = turndownService.turndown(currentNote.content || '');
-    const blob = new Blob([markdown], { type: 'text/markdown' });
+  const exportToHTML = () => {
+    const blob = new Blob([currentNote.content || ''], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${currentNote.title}.md`;
+    a.download = `${currentNote.title}.html`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
   };
-
 
   const handleDeleteNote = async (id: number) => {
     try {
@@ -173,6 +157,32 @@ export default function Home() {
     }
   };
 
+  const handleImportHTML = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const htmlContent = e.target?.result as string;
+        const date = new Date().toISOString();
+        const newNote = {
+          title: `Importado - ${date}`,
+          content: htmlContent,
+          created_at: date,
+          updated_at: date,
+        };
+        const id = await db.notes.add(newNote);
+        setCurrentNote({
+          ...newNote,
+          id: id,
+        });
+        editor?.commands.setContent(htmlContent);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   useEffect(() => {
     if (!currentNote.id) {
       setNoteState('unknown');
@@ -188,7 +198,7 @@ export default function Home() {
           setNoteState('unsaved');
         }
       } else {
-        setNoteState('unsaved'); // Considera 'unsaved' se a nota não for encontrada
+        setNoteState('unsaved');
       }
     }
   }, [currentNote, notes]);
@@ -207,7 +217,6 @@ export default function Home() {
           </button>
         </div>
         <ul className="flex-grow flex flex-col gap-2 w-full p-4 mb-4 overflow-y-auto h-0">
-          {' '}
           {notes
             ?.sort((a, b) => {
               return (
@@ -261,15 +270,32 @@ export default function Home() {
                 {getNoteState()}
               </p>
               <div className="flex gap-2 text-sm">
-                   <button
+                <div className="inline-flex gap-2 items-center">
+                  <label
+                    htmlFor="import-html"
+                    className="flex gap-2 items-center px-4 py-1 bg-indigo-500 text-white text-sm font-medium rounded-lg cursor-pointer hover:bg-indigo-600"
+                  >
+                    <Upload size={16} />
+                    Importar HTML
+                  </label>
+                  <input
+                    id="import-html"
+                    type="file"
+                    accept="text/html"
+                    onChange={handleImportHTML}
+                    className="hidden"
+                  />
+                </div>
+                <button
                   type="button"
                   onClick={() => {
-                    exportToMarkdown();
+                    exportToHTML();
                   }}
                   className="text-neutral-500 px-4 py-1 font-medium flex items-center justify-center text-center"
                 >
-                  Exportar para Markdown
+                  Exportar para HTML
                 </button>
+
                 <button
                   type="button"
                   onClick={() => {
@@ -288,8 +314,6 @@ export default function Home() {
                 >
                   Salvar
                 </button>
-
-                
               </div>
             </div>
           </>

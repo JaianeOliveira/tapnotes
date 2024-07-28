@@ -1,3 +1,14 @@
+:root {
+  --gray-100:#f3f4f6;
+  --gray-200:#e5e7eb;
+  --gray-300:#d1d5db;
+  --black: #000000;
+  --white: #ffffff;
+  --indigo-500:#6366f1;
+  --indigo-600: #4f46e5;
+  --indigo-700:#4338ca; 
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -5,6 +16,7 @@
 .ProseMirror {
   outline: none !important;
 }
+
 
 * {
   @apply scrollbar-thin
@@ -14,17 +26,136 @@
     margin-top: 0;
   }
 
-  /* List styles */
-  ul,
-  ol {
-    padding: 0 1rem;
-    margin: 1.25rem 1rem 1.25rem 0.4rem;
+  /* Heading Styles */
+  h1, 
+  h2, 
+  h3, 
+  h4, 
+  h5, 
+  h6 {
+    line-height: 1.1;
+    margin-top: 1rem;
+    text-wrap: pretty;
+  }
 
-    li p {
-      margin-top: 0.25em;
-      margin-bottom: 0.25em;
+  h1, 
+  h2 {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  h1 { 
+    font-size: 1.4rem; 
+  }
+
+  h2 { 
+    font-size: 1.2rem; 
+  }
+
+  h3 { 
+    font-size: 1.1rem; 
+  }
+
+  h4, 
+  h5, 
+  h6 { 
+    font-size: 1rem; 
+  }
+
+  /* Code and preformatted text styles */
+  code {
+    background-color: var(--gray-200);
+    border-radius: 0.4rem;
+    color: var(--black);
+    font-size: 0.85rem;
+    padding: 0.25em 0.3em;
+  }
+
+  mark {
+    background-color: #FAF594;
+    border-radius: 0.4rem;
+    box-decoration-break: clone;
+    padding: 0.1rem 0.3rem;
+  }
+
+  blockquote {
+    border-left: 3px solid var(--gray-300);
+    margin: 1.5rem 0;
+    padding-left: 1rem;
+  }
+
+   /* Link styles */
+  a {
+    color: var(--indigo-600) !important;
+    cursor: pointer;
+    font-weight: medium !important;
+    text-decoration: underline !important;
+
+    &:hover {
+      color: var(--indigo-700) !important;
     }
   }
+
+  
+  
+ /* List styles */
+ ul, 
+ ol {
+   padding: 0 0.5rem;
+   margin: 0rem 1rem 0rem 0.4rem;
+   
+   li p {
+     margin-top: 0.25em;
+     margin-bottom: 0.25em;
+   }
+ }
+ 
+ ul {
+   list-style: disc;
+ }
+ 
+ ol {
+   list-style: decimal;
+ }
+ 
+ /* Estilos para subníveis */
+ul, 
+ol {
+  padding: 0 0.5rem;
+  margin: 0rem 1rem 0rem 0.4rem;
+  
+  li p {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+  }
+}
+
+ul {
+  list-style: disc;
+}
+
+ol {
+  list-style: decimal;
+}
+
+/* Estilos para subníveis */
+ul ul, 
+ul ol, 
+ol ul, 
+ol ol {
+  padding-left: 1rem;
+  margin: 0; /* Ajuste conforme necessário */
+}
+
+/* Manter o estilo de lista não ordenada */
+ul ul {
+  list-style: disc;
+}
+
+/* Manter o estilo de lista ordenada como decimal */
+ol ol {
+  list-style: decimal;
+}
 
   /* Task list specific styles */
   ul[data-type="taskList"] {
@@ -53,6 +184,121 @@
 
     ul[data-type="taskList"] {
       margin: 0;
+    }
+  }
+
+  pre {
+    background: var(--black);
+    border-radius: 0.5rem;
+    color: var(--white);
+    font-family: 'JetBrainsMono', monospace;
+    margin: 1.5rem 0;
+    padding: 0.75rem 1rem;
+
+    code {
+      background: none;
+      color: inherit;
+      font-size: 0.8rem;
+      padding: 0;
+    }
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--gray-200);
+    cursor: pointer;
+    margin: 2rem 0;
+
+    &.ProseMirror-selectednode {
+      border-top: 1px solid var(--indigo-500);
+    }
+  }
+
+  img {
+    display: block;
+    height: auto;
+    margin: 1.5rem 0;
+    max-width: 100%;
+
+    &.ProseMirror-selectednode {
+      outline: 3px solid var(--indigo-500);
+    }
+  }
+
+  /* Table-specific styling */
+  table {
+    border-collapse: collapse;
+    margin: 0;
+    overflow: hidden;
+    table-layout: fixed;
+    width: 100%;
+
+    td,
+    th {
+      border: 1px solid var(--gray-300);
+      box-sizing: border-box;
+      min-width: 1em;
+      padding: 6px 8px;
+      position: relative;
+      vertical-align: top;
+
+      > * {
+        margin-bottom: 0;
+      }
+    }
+
+    th {
+      background-color: var(--gray-100);
+      font-weight: bold;
+      text-align: left;
+    }
+
+    .selectedCell:after {
+      background: var(--gray-200);
+      content: "";
+      left: 0; right: 0; top: 0; bottom: 0;
+      pointer-events: none;
+      position: absolute;
+      z-index: 2;
+    }
+
+    .column-resize-handle {
+      background-color: var(--indigo-500);
+      bottom: -2px;
+      pointer-events: none;
+      position: absolute;
+      right: -2px;
+      top: 0;
+      width: 4px;
+    }
+  }
+
+  .tableWrapper {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  &.resize-cursor {
+    cursor: ew-resize;
+    cursor: col-resize;
+  }
+
+  /* Youtube embed */
+  div[data-youtube-video] {
+    cursor: move;
+    padding-right: 1.5rem;
+
+    iframe {
+      border: 0.5rem solid var(--black-contrast);
+      display: block;
+      min-height: 200px;
+      min-width: 200px;
+      outline: 0px solid transparent;
+    }
+
+    &.ProseMirror-selectednode iframe {
+      outline: 3px solid var(--indigo-500);
+      transition: outline 0.15s;
     }
   }
 }
