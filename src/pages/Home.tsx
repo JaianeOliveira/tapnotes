@@ -20,6 +20,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { common, createLowlight } from 'lowlight';
 import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import TurndownService from "turndown";
 import { EditorToolbar } from '../components/EditorTollbar';
 import { db, Note } from '../lib/dexie';
 
@@ -134,6 +135,20 @@ export default function Home() {
     }
   };
 
+  const exportToMarkdown = () => {
+    const turndownService = new TurndownService();
+    const markdown = turndownService.turndown(currentNote.content || '');
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentNote.title}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+
   const handleDeleteNote = async (id: number) => {
     try {
       await db.notes.delete(id);
@@ -246,12 +261,21 @@ export default function Home() {
                 {getNoteState()}
               </p>
               <div className="flex gap-2 text-sm">
+                   <button
+                  type="button"
+                  onClick={() => {
+                    exportToMarkdown();
+                  }}
+                  className="text-neutral-500 px-4 py-1 font-medium flex items-center justify-center text-center"
+                >
+                  Exportar para Markdown
+                </button>
                 <button
                   type="button"
                   onClick={() => {
                     handleDeleteNote(currentNote.id!);
                   }}
-                  className="text-red-500 px-4 py-1 font-medium"
+                  className="text-red-500 px-4 py-1 font-medium flex items-center justify-center text-center"
                 >
                   Excluir nota
                 </button>
@@ -260,10 +284,12 @@ export default function Home() {
                   onClick={() => {
                     handleUpdateNote(currentNote.id!);
                   }}
-                  className="bg-indigo-500 px-4 py-1 rounded-md shadow-md text-neutral-50 font-semibold"
+                  className="bg-indigo-500 px-4 py-1 rounded-md shadow-md text-neutral-50 font-semibold flex items-center justify-center text-center"
                 >
                   Salvar
                 </button>
+
+                
               </div>
             </div>
           </>
