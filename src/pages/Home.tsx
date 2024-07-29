@@ -18,8 +18,22 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { common, createLowlight } from 'lowlight';
-import { ChevronLeft, ChevronRight, Plus, Upload } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  FileCode2,
+  FileJson2,
+  Menu,
+  Plus,
+  Save,
+  Trash2,
+  Upload,
+  X
+} from 'lucide-react';
+import { Sidebar } from 'primereact/sidebar';
+import { TieredMenu } from 'primereact/tieredmenu';
+import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { EditorToolbar } from '../components/EditorTollbar';
 import { db, Note } from '../lib/dexie';
@@ -27,6 +41,8 @@ import { db, Note } from '../lib/dexie';
 const lowlight = createLowlight(common);
 
 export default function Home() {
+  const menu = useRef<TieredMenu>(null);
+
   const [currentNote, setCurrentNote] = useState<Partial<Note>>({
     title: '',
     content: '',
@@ -38,6 +54,7 @@ export default function Home() {
   );
 
   const [collapsed, setCollapsed] = useState(false);
+  const [sideBarIsOpen, setSideBarIsOpen] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -159,17 +176,19 @@ export default function Home() {
     }
   };
 
-  const handleImportHTML = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
+  const handleCloseNote = () => {
+    setCurrentNote({});
+    editor?.commands.clearContent();
+  };
+
+  const handleImportHTML = async (file: File) => {
     if (file) {
       const reader = new FileReader();
       reader.onload = async (e) => {
         const htmlContent = e.target?.result as string;
         const date = new Date().toISOString();
         const newNote = {
-          title: `Importado - ${date}`,
+          title: `${file.name.replace('.html', '')} - importado em ${date}`,
           content: htmlContent,
           created_at: date,
           updated_at: date,
@@ -183,6 +202,72 @@ export default function Home() {
       };
       reader.readAsText(file);
     }
+  };
+
+  const handleImportJSON = async (file: File) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const jsonContent = e.target?.result as string;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _, ...importedNote } = JSON.parse(jsonContent);
+        console.log(importedNote);
+        console.log(importedNote);
+        const date = new Date().toISOString();
+        const newNote = {
+          ...importedNote,
+          title: `${importedNote.title} - importado em ${date}`,
+          created_at: date,
+          updated_at: date,
+        };
+        const id = await db.notes.add(newNote);
+        setCurrentNote({
+          ...newNote,
+          id: id,
+        });
+        editor?.commands.setContent(importedNote.content || '');
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const file = event.target.files?.[0];
+
+      if (file) {
+        const fileType = file.type;
+
+        if (fileType === 'application/json') {
+          handleImportJSON(file);
+        }
+
+        if (fileType === 'text/html') {
+          handleImportHTML(file);
+        }
+
+        toast.success('Importado com sucesso!');
+      }
+    } catch (err) {
+      toast.error('Erro ao importar arquivo');
+    }
+  };
+
+  const exportToJSON = () => {
+    const noteJSON = editor?.getJSON(); // Obtém o JSON do Tiptap
+    const blob = new Blob(
+      [JSON.stringify({ ...currentNote, content: noteJSON })],
+      {
+        type: 'application/json',
+      }
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentNote.title}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   useEffect(() => {
@@ -206,7 +291,91 @@ export default function Home() {
   }, [currentNote, notes]);
 
   return (
-    <div className="flex h-[100vh] w-full overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-[100vh] w-full overflow-hidden">
+      <input
+        id="import-file"
+        type="file"
+        accept=".html,application/json"
+        onChange={handleImport}
+        className="hidden"
+      />
+      <Sidebar
+        visible={sideBarIsOpen}
+        onHide={() => setSideBarIsOpen(false)}
+        position="right"
+        header={() => {
+          return (
+            <div className='flex items-center gap-2'>
+              <button
+                type="button"
+                onClick={handleCreateNewNoteEntry}
+                className="bg-indigo-500 hover:brightness-105 transition-all duration-300 w-fit px-4 py-2 rounded-lg shadow-md text-neutral-50 font-semibold"
+              >
+                <span>Criar Nota</span>
+              </button>
+              <label
+                htmlFor="import-file"
+                className="cursor-pointer p-1 rounded-md flex gap-2 items-center border border-transparent justify-center aspect-square text-neutral-500 hover:bg-neutral-200 hover:border-neutral-300 transition-all duration-300"
+              >
+                <Upload size={16} />
+              </label>
+            </div>
+          );
+        }}
+      >
+          <ul className='flex flex-col gap-2'>
+              {notes
+                ?.sort((a, b) => {
+                  return (
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+                  );
+                })
+                .map((note) => (
+                  <li
+                    key={note.id}
+                    onClick={() => {
+                      setCurrentNote(note);
+                      editor?.commands.setContent(note.content);
+                    }}
+                    className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  >
+                    {note.title}
+                  </li>
+                ))}
+            </ul>
+      </Sidebar>
+      <div className="flex lg:hidden w-full">
+        <div className="w-full p-4 text-neutral-700 flex gap-4 items-center justify-between border-b border-b-neutral-200">
+          <h1 className="text-lg font-extrabold tracking-wider">tapnotes;</h1>
+          <div className="flex gap-2 items-center ">
+            <label
+              htmlFor="import-file"
+              className="hidden lg:flex cursor-pointer p-1 rounded-md items-center border border-transparent justify-center aspect-square text-neutral-500 hover:bg-neutral-200 hover:border-neutral-300 transition-all duration-300"
+            >
+              <Upload size={16} />
+            </label>
+            <button
+              type="button"
+              onClick={handleCreateNewNoteEntry}
+              className="hidden lg:block bg-indigo-500 hover:brightness-105 transition-all duration-300 w-fit px-4 py-2 rounded-lg shadow-md text-neutral-50 font-semibold"
+            >
+              <span className="hidden xl:block">Criar Nota</span>
+              <span className="block xl:hidden">
+                <Plus size={16} />
+              </span>
+            </button>
+            <button
+              onClick={() => setSideBarIsOpen(!sideBarIsOpen)}
+              type="button"
+              className="cursor-pointer p-1 rounded-md flex items-center border border-transparent justify-center aspect-square text-neutral-500 hover:bg-neutral-200 hover:border-neutral-300 transition-all duration-300"
+            >
+              <Menu size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div
         className={`h-full border-r border-neutral-300 bg-neutral-100 shadow-md hidden lg:flex flex-col relative transition-all ${
           !collapsed ? 'w-[25%]' : 'w-8'
@@ -225,16 +394,24 @@ export default function Home() {
               <h1 className="text-lg font-extrabold tracking-wider">
                 tapnotes;
               </h1>
-              <button
-                type="button"
-                onClick={handleCreateNewNoteEntry}
-                className="bg-indigo-500 hover:brightness-105 transition-all duration-300 w-fit px-4 py-2 rounded-lg shadow-md text-neutral-50 font-semibold"
-              >
-                <span className="hidden xl:block">Criar Nota</span>
-                <span className="block xl:hidden">
-                  <Plus size={16} />
-                </span>
-              </button>
+              <div className="flex gap-2 items-center">
+                <label
+                  htmlFor="import-file"
+                  className="cursor-pointer p-1 rounded-md flex items-center border border-transparent justify-center aspect-square text-neutral-500 hover:bg-neutral-200 hover:border-neutral-300 transition-all duration-300"
+                >
+                  <Upload size={16} />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleCreateNewNoteEntry}
+                  className="bg-indigo-500 hover:brightness-105 transition-all duration-300 w-fit px-4 py-2 rounded-lg shadow-md text-neutral-50 font-semibold"
+                >
+                  <span className="hidden xl:block">Criar Nota</span>
+                  <span className="block xl:hidden">
+                    <Plus size={16} />
+                  </span>
+                </button>
+              </div>
             </div>
             <ul className="flex-grow flex flex-col gap-2 w-full p-4 mb-4 overflow-y-auto h-0">
               {notes
@@ -260,7 +437,7 @@ export default function Home() {
           </>
         )}
       </div>
-      <div className="w-full bg-neutral-50 flex flex-col">
+      <div className="w-full bg-neutral-50 flex flex-col h-full">
         {!currentNote.id ? (
           <div className="w-full h-full flex items-center justify-center">
             <p className="text-sm italic text-neutral-400">
@@ -269,7 +446,7 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <div className="p-4 border-b border-neutral-300">
+            <div className="p-4 border-b border-neutral-300 flex items-center justify-between">
               <input
                 name="newnote-title"
                 value={currentNote.title}
@@ -280,8 +457,16 @@ export default function Home() {
                   }));
                 }}
                 placeholder="Título da Nota"
-                className="font-bold text-lg text-neutral-800 outline-none w-full"
+                className="font-bold text-lg text-neutral-800 outline-none w-full bg-transparent"
               />
+
+              <button
+                type="button"
+                className="text-neutral-500"
+                onClick={handleCloseNote}
+              >
+                <X size={16} />
+              </button>
             </div>
             <EditorToolbar editor={editor} />
             <div className="flex-grow p-4 overflow-y-auto h-0">
@@ -292,30 +477,36 @@ export default function Home() {
                 {getNoteState()}
               </p>
               <div className="flex gap-2 text-sm">
-                <div className="inline-flex gap-2 items-center">
-                  <label
-                    htmlFor="import-html"
-                    className="flex gap-2 items-center px-4 py-1 text-neutral-500 text-sm font-medium rounded-lg cursor-pointer"
-                  >
-                    <Upload size={16} />
-                    Importar HTML
-                  </label>
-                  <input
-                    id="import-html"
-                    type="file"
-                    accept="text/html"
-                    onChange={handleImportHTML}
-                    className="hidden"
-                  />
-                </div>
+                <TieredMenu
+                  model={[
+                    {
+                      label: 'HTML',
+                      icon: <FileCode2 size={16} className="mr-2" />,
+                      className: 'text-neutral-500 text-sm',
+                      command: () => {
+                        exportToHTML();
+                      },
+                    },
+                    {
+                      label: 'JSON',
+                      icon: <FileJson2 size={16} className="mr-2" />,
+                      className: 'text-neutral-500 text-sm',
+                      command: () => {
+                        exportToJSON();
+                      },
+                    },
+                  ]}
+                  popup
+                  ref={menu}
+                  breakpoint="767px"
+                />
                 <button
+                  onClick={(e) => menu.current && menu.current.toggle(e)}
                   type="button"
-                  onClick={() => {
-                    exportToHTML();
-                  }}
-                  className="text-neutral-500 px-4 py-1 font-medium flex items-center justify-center text-center"
+                  className="text-neutral-500 py-1 font-medium justify-center text-center inline-flex gap-2 items-center"
                 >
-                  Exportar para HTML
+                  <Download size={16} />
+                  <span className='hidden sm:inline'>Exportar</span>
                 </button>
 
                 <button
@@ -325,7 +516,8 @@ export default function Home() {
                   }}
                   className="text-red-500 px-4 py-1 font-medium flex items-center justify-center text-center"
                 >
-                  Excluir nota
+                  <Trash2 size={16}  className="text-red-500 inline sm:hidden"/>
+                  <span className='hidden sm:inline'>Excluir nota</span>
                 </button>
                 <button
                   type="button"
@@ -334,7 +526,8 @@ export default function Home() {
                   }}
                   className="bg-indigo-500 px-4 py-1 rounded-md shadow-md text-neutral-50 font-semibold flex items-center justify-center text-center"
                 >
-                  Salvar
+                  <Save size={16}  className="inline sm:hidden"/>
+                  <span className='hidden sm:inline'>Salvar</span>
                 </button>
               </div>
             </div>

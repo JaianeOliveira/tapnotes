@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 export const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
+
   if (!editor) {
     return null;
   }
@@ -68,132 +69,137 @@ export const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
 
   return (
     <>
-      <div className="p-4 flex gap-2 items-center bg-neutral-100 border-b border-neutral-300">
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleHeading1}
-        >
-          <Heading1 size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleHeading2}
-        >
-          <Heading2 size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleHeading3}
-        >
-          <Heading3 size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleBold}
-        >
-          <Bold size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleItalic}
-        >
-          <Italic size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleUnderline}
-        >
-          <UnderlineIcon size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleStrike}
-        >
-          <Strikethrough size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleSubscript}
-        >
-          <SubscriptIcon size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleSuperscript}
-        >
-          <SuperscriptIcon size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleBulletList}
-        >
-          <List size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleOrderedList}
-        >
-          <ListOrdered size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleTaskList}
-        >
-          <ListChecks size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleHighlight}
-        >
-          <Highlighter size={16} />
-        </button>
-        {/* <button
+      <div className="p-4 flex gap-2 items-center justify-between bg-neutral-100 border-b border-neutral-300">
+        <div className="flex gap-3 items-center flex-wrap">
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleHeading1}
+          >
+            <Heading1 size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleHeading2}
+          >
+            <Heading2 size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleHeading3}
+          >
+            <Heading3 size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleBold}
+          >
+            <Bold size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleItalic}
+          >
+            <Italic size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleUnderline}
+          >
+            <UnderlineIcon size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleStrike}
+          >
+            <Strikethrough size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleSubscript}
+          >
+            <SubscriptIcon size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleSuperscript}
+          >
+            <SuperscriptIcon size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleBulletList}
+          >
+            <List size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleOrderedList}
+          >
+            <ListOrdered size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleTaskList}
+          >
+            <ListChecks size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleHighlight}
+          >
+            <Highlighter size={16} />
+          </button>
+          {/* <button
           type="button"
           className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
         >
           <TableIcon size={16} />
         </button> */}
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleCode}
-        >
-          <Code size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleCodeblock}
-        >
-          <Terminal size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleBlockquote}
-        >
-          <MessageSquareQuote size={16} />
-        </button>
-        <button
-          type="button"
-          className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
-          onClick={handleHorizontalRule}
-        >
-          <Minus size={16} />
-        </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleCode}
+          >
+            <Code size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleCodeblock}
+          >
+            <Terminal size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleBlockquote}
+          >
+            <MessageSquareQuote size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={handleHorizontalRule}
+          >
+            <Minus size={16} />
+          </button>
+        </div>
+        <div> 
+          
+        </div>
       </div>
     </>
   );
