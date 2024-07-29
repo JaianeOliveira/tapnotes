@@ -11,6 +11,7 @@ import TableHeader from '@tiptap/extension-table-header';
 import TableRow from '@tiptap/extension-table-row';
 import TaskItem from '@tiptap/extension-task-item';
 import TaskList from '@tiptap/extension-task-list';
+import TextAlign from '@tiptap/extension-text-align';
 import Typography from '@tiptap/extension-typography';
 import Underline from '@tiptap/extension-underline';
 import Youtube from '@tiptap/extension-youtube';
@@ -39,7 +40,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { EditorToolbar } from '../components/EditorTollbar';
 import { db, Note } from '../lib/dexie';
-import TextAlign from '@tiptap/extension-text-align';
 
 const lowlight = createLowlight(common);
 
@@ -368,6 +368,24 @@ export default function Home() {
       }
     }
   }, [currentNote, notes]);
+
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (currentNote.id) {
+          await handleUpdateNote(currentNote.id);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentNote.id, currentNote.content]);
+
 
   return (
     <div className="flex flex-col lg:flex-row h-[100vh] w-full overflow-hidden">
