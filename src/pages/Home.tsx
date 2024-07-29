@@ -24,6 +24,7 @@ import {
   Download,
   FileCode2,
   FileJson2,
+  FileText,
   Menu,
   Plus,
   Save,
@@ -231,6 +232,29 @@ export default function Home() {
     }
   };
 
+  const handleImportTXT = async (file: File) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const textContent = e.target?.result as string;
+        const date = new Date().toISOString();
+        const newNote = {
+          title: `${file.name.replace('.txt', '')} - importado em ${date}`,
+          content: textContent,
+          created_at: date,
+          updated_at: date,
+        };
+        const id = await db.notes.add(newNote);
+        setCurrentNote({
+          ...newNote,
+          id: id,
+        });
+        editor?.commands.setContent(textContent);
+      };
+      reader.readAsText(file);
+    }
+  };
+
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = event.target.files?.[0];
@@ -240,10 +264,13 @@ export default function Home() {
 
         if (fileType === 'application/json') {
           handleImportJSON(file);
-        }
-
-        if (fileType === 'text/html') {
+        } else if (fileType === 'text/html') {
           handleImportHTML(file);
+        } else if (fileType === 'text/plain') {
+          handleImportTXT(file);
+        } else {
+          toast.error('Tipo de arquivo não suportado');
+          return;
         }
 
         toast.success('Importado com sucesso!');
@@ -265,6 +292,23 @@ export default function Home() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `${currentNote.title}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const exportToTXT = () => {
+    const noteJSON = editor?.getText(); 
+    const blob = new Blob(
+      [noteJSON || ''],
+      {
+        type: 'text/plain',
+      }
+    );
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentNote.title}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -295,7 +339,7 @@ export default function Home() {
       <input
         id="import-file"
         type="file"
-        accept=".html,application/json"
+        accept=".html,application/json,text/plain"
         onChange={handleImport}
         className="hidden"
       />
@@ -493,6 +537,14 @@ export default function Home() {
                       className: 'text-neutral-500 text-sm',
                       command: () => {
                         exportToJSON();
+                      },
+                    },
+                    {
+                      label: 'TXT',
+                      icon: <FileText size={16} className="mr-2" />,
+                      className: 'text-neutral-500 text-sm',
+                      command: () => {
+                        exportToTXT();
                       },
                     },
                   ]}
