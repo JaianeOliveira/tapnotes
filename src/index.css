@@ -213,7 +213,7 @@ ol ol {
     border: none;
     border-top: 1px solid var(--gray-200);
     cursor: pointer;
-    margin: 2rem 0;
+    margin: 1rem 0;
 
     &.ProseMirror-selectednode {
       border-top: 1px solid var(--indigo-500);

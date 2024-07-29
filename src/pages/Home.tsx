@@ -18,7 +18,7 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { common, createLowlight } from 'lowlight';
-import { Upload } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Upload } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import { EditorToolbar } from '../components/EditorTollbar';
@@ -36,6 +36,8 @@ export default function Home() {
   const [noteState, setNoteState] = useState<'saved' | 'unsaved' | 'unknown'>(
     'unknown'
   );
+
+  const [collapsed, setCollapsed] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -204,41 +206,61 @@ export default function Home() {
   }, [currentNote, notes]);
 
   return (
-    <div className="grid grid-cols-5 h-[100vh] w-full overflow-hidden">
-      <div className="col-span-1 h-full border-r border-neutral-300 bg-neutral-100 shadow-md flex flex-col">
-        <div className="p-4 text-neutral-700 flex gap-4 items-center justify-between border-b border-b-neutral-200">
-          <h1 className="text-lg font-extrabold tracking-wider">tapnotes;</h1>
-          <button
-            type="button"
-            onClick={handleCreateNewNoteEntry}
-            className="bg-indigo-500 hover:brightness-105 transition-all duration-300 w-fit px-4 py-2 rounded-lg shadow-md text-neutral-50 font-semibold"
-          >
-            Criar Nota
-          </button>
-        </div>
-        <ul className="flex-grow flex flex-col gap-2 w-full p-4 mb-4 overflow-y-auto h-0">
-          {notes
-            ?.sort((a, b) => {
-              return (
-                new Date(b.created_at).getTime() -
-                new Date(a.created_at).getTime()
-              );
-            })
-            .map((note) => (
-              <li
-                key={note.id}
-                onClick={() => {
-                  setCurrentNote(note);
-                  editor?.commands.setContent(note.content);
-                }}
-                className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+    <div className="flex h-[100vh] w-full overflow-hidden">
+      <div
+        className={`h-full border-r border-neutral-300 bg-neutral-100 shadow-md hidden lg:flex flex-col relative transition-all ${
+          !collapsed ? 'w-[25%]' : 'w-8'
+        }`}
+      >
+        <button
+          type="button"
+          onClick={() => setCollapsed(!collapsed)}
+          className="flex items-center justify-center bg-neutral-200 border-[2px] border-neutral-400 aspect-square text-neutral-400 rounded-full h-6 w-6 absolute -right-3 top-14"
+        >
+          {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+        </button>
+        {collapsed ? null : (
+          <>
+            <div className="p-4 text-neutral-700 flex gap-4 items-center justify-between border-b border-b-neutral-200">
+              <h1 className="text-lg font-extrabold tracking-wider">
+                tapnotes;
+              </h1>
+              <button
+                type="button"
+                onClick={handleCreateNewNoteEntry}
+                className="bg-indigo-500 hover:brightness-105 transition-all duration-300 w-fit px-4 py-2 rounded-lg shadow-md text-neutral-50 font-semibold"
               >
-                {note.title}
-              </li>
-            ))}
-        </ul>
+                <span className="hidden xl:block">Criar Nota</span>
+                <span className="block xl:hidden">
+                  <Plus size={16} />
+                </span>
+              </button>
+            </div>
+            <ul className="flex-grow flex flex-col gap-2 w-full p-4 mb-4 overflow-y-auto h-0">
+              {notes
+                ?.sort((a, b) => {
+                  return (
+                    new Date(b.created_at).getTime() -
+                    new Date(a.created_at).getTime()
+                  );
+                })
+                .map((note) => (
+                  <li
+                    key={note.id}
+                    onClick={() => {
+                      setCurrentNote(note);
+                      editor?.commands.setContent(note.content);
+                    }}
+                    className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  >
+                    {note.title}
+                  </li>
+                ))}
+            </ul>
+          </>
+        )}
       </div>
-      <div className="col-span-4 w-full bg-neutral-50 flex flex-col">
+      <div className="w-full bg-neutral-50 flex flex-col">
         {!currentNote.id ? (
           <div className="w-full h-full flex items-center justify-center">
             <p className="text-sm italic text-neutral-400">
@@ -273,7 +295,7 @@ export default function Home() {
                 <div className="inline-flex gap-2 items-center">
                   <label
                     htmlFor="import-html"
-                    className="flex gap-2 items-center px-4 py-1 text-neutral-500  text-sm font-medium rounded-lg cursor-pointer"
+                    className="flex gap-2 items-center px-4 py-1 text-neutral-500 text-sm font-medium rounded-lg cursor-pointer"
                   >
                     <Upload size={16} />
                     Importar HTML

@@ -3,9 +3,13 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { routes } from './routes';
 
+import { PrimeReactProvider } from 'primereact/api';
+
+import 'primereact/resources/themes/viva-light/theme.css';
+
 export default function App() {
   return (
-    <>
+    <PrimeReactProvider>
       <RouterProvider router={routes} />
       <ToastContainer
         position="top-right"
@@ -19,6 +23,6 @@ export default function App() {
         pauseOnHover
         theme="light"
       />
-    </>
+    </PrimeReactProvider>
   );
 }
