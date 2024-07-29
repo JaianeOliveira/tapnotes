@@ -30,14 +30,16 @@ import {
   Save,
   Trash2,
   Upload,
-  X
+  X,
 } from 'lucide-react';
+import mammoth from 'mammoth';
 import { Sidebar } from 'primereact/sidebar';
 import { TieredMenu } from 'primereact/tieredmenu';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { EditorToolbar } from '../components/EditorTollbar';
 import { db, Note } from '../lib/dexie';
+import TextAlign from '@tiptap/extension-text-align';
 
 const lowlight = createLowlight(common);
 
@@ -100,6 +102,9 @@ export default function Home() {
         placeholder: 'Escreva algo aqui...',
         emptyEditorClass: 'is-editor-empty',
       }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+      })
     ],
     onUpdate: ({ editor }) => {
       setCurrentNote((prev) => ({
@@ -255,6 +260,34 @@ export default function Home() {
     }
   };
 
+  const handleImportDOCX = async (file: File) => {
+    if (file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const htmlContent = result.value; // HTML convertido do arquivo DOCX
+        const date = new Date().toISOString();
+        const newNote = {
+          title: `${file.name.replace('.docx', '')} - importado em ${date}`,
+          content: htmlContent,
+          created_at: date,
+          updated_at: date,
+        };
+        const id = await db.notes.add(newNote);
+        setCurrentNote({
+          ...newNote,
+          id: id,
+        });
+        editor?.commands.setContent(htmlContent);
+
+        toast.success('Importado com sucesso!');
+      } catch (error) {
+        console.error('Erro ao processar o arquivo DOCX:', error);
+        toast.error('Erro ao importar o arquivo DOCX');
+      }
+    }
+  };
+
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {
       const file = event.target.files?.[0];
@@ -268,6 +301,11 @@ export default function Home() {
           handleImportHTML(file);
         } else if (fileType === 'text/plain') {
           handleImportTXT(file);
+        } else if (
+          fileType ===
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ) {
+          handleImportDOCX(file);
         } else {
           toast.error('Tipo de arquivo não suportado');
           return;
@@ -298,13 +336,10 @@ export default function Home() {
   };
 
   const exportToTXT = () => {
-    const noteJSON = editor?.getText(); 
-    const blob = new Blob(
-      [noteJSON || ''],
-      {
-        type: 'text/plain',
-      }
-    );
+    const noteJSON = editor?.getText();
+    const blob = new Blob([noteJSON || ''], {
+      type: 'text/plain',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -339,7 +374,7 @@ export default function Home() {
       <input
         id="import-file"
         type="file"
-        accept=".html,application/json,text/plain"
+        accept=".html,application/json,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         onChange={handleImport}
         className="hidden"
       />
@@ -349,7 +384,7 @@ export default function Home() {
         position="right"
         header={() => {
           return (
-            <div className='flex items-center gap-2'>
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleCreateNewNoteEntry}
@@ -367,27 +402,27 @@ export default function Home() {
           );
         }}
       >
-          <ul className='flex flex-col gap-2'>
-              {notes
-                ?.sort((a, b) => {
-                  return (
-                    new Date(b.created_at).getTime() -
-                    new Date(a.created_at).getTime()
-                  );
-                })
-                .map((note) => (
-                  <li
-                    key={note.id}
-                    onClick={() => {
-                      setCurrentNote(note);
-                      editor?.commands.setContent(note.content);
-                    }}
-                    className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
-                  >
-                    {note.title}
-                  </li>
-                ))}
-            </ul>
+        <ul className="flex flex-col gap-2">
+          {notes
+            ?.sort((a, b) => {
+              return (
+                new Date(b.created_at).getTime() -
+                new Date(a.created_at).getTime()
+              );
+            })
+            .map((note) => (
+              <li
+                key={note.id}
+                onClick={() => {
+                  setCurrentNote(note);
+                  editor?.commands.setContent(note.content);
+                }}
+                className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
+              >
+                {note.title}
+              </li>
+            ))}
+        </ul>
       </Sidebar>
       <div className="flex lg:hidden w-full">
         <div className="w-full p-4 text-neutral-700 flex gap-4 items-center justify-between border-b border-b-neutral-200">
@@ -558,7 +593,7 @@ export default function Home() {
                   className="text-neutral-500 py-1 font-medium justify-center text-center inline-flex gap-2 items-center"
                 >
                   <Download size={16} />
-                  <span className='hidden sm:inline'>Exportar</span>
+                  <span className="hidden sm:inline">Exportar</span>
                 </button>
 
                 <button
@@ -568,8 +603,8 @@ export default function Home() {
                   }}
                   className="text-red-500 px-4 py-1 font-medium flex items-center justify-center text-center"
                 >
-                  <Trash2 size={16}  className="text-red-500 inline sm:hidden"/>
-                  <span className='hidden sm:inline'>Excluir nota</span>
+                  <Trash2 size={16} className="text-red-500 inline sm:hidden" />
+                  <span className="hidden sm:inline">Excluir nota</span>
                 </button>
                 <button
                   type="button"
@@ -578,8 +613,8 @@ export default function Home() {
                   }}
                   className="bg-indigo-500 px-4 py-1 rounded-md shadow-md text-neutral-50 font-semibold flex items-center justify-center text-center"
                 >
-                  <Save size={16}  className="inline sm:hidden"/>
-                  <span className='hidden sm:inline'>Salvar</span>
+                  <Save size={16} className="inline sm:hidden" />
+                  <span className="hidden sm:inline">Salvar</span>
                 </button>
               </div>
             </div>

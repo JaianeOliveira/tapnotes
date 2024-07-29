@@ -1,5 +1,9 @@
 import { Editor } from '@tiptap/react';
 import {
+  AlignCenter,
+  AlignJustify,
+  AlignLeft,
+  AlignRight,
   Bold,
   Code,
   Heading1,
@@ -16,11 +20,10 @@ import {
   Subscript as SubscriptIcon,
   Superscript as SuperscriptIcon,
   Terminal,
-  Underline as UnderlineIcon
+  Underline as UnderlineIcon,
 } from 'lucide-react';
 
 export const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
-
   if (!editor) {
     return null;
   }
@@ -66,6 +69,9 @@ export const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
 
   const handleHorizontalRule = () =>
     editor.chain().focus().setHorizontalRule().run();
+
+  const handleAlign = (align: 'left' | 'center' | 'right' | 'justify') =>
+    editor.chain().focus().setTextAlign(align).run();
 
   return (
     <>
@@ -134,6 +140,7 @@ export const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
           >
             <SuperscriptIcon size={16} />
           </button>
+
           <button
             type="button"
             className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
@@ -196,10 +203,36 @@ export const EditorToolbar = ({ editor }: { editor: Editor | null }) => {
           >
             <Minus size={16} />
           </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={() => handleAlign('left')}
+          >
+            <AlignLeft size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={() => handleAlign('center')}
+          >
+            <AlignCenter size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={() => handleAlign('right')}
+          >
+            <AlignRight size={16} />
+          </button>
+          <button
+            type="button"
+            className="bg-neutral-200 p-1 rounded-md flex items-center justify-center aspect-square text-neutral-500 border border-neutral-400 hover:brightness-95"
+            onClick={() => handleAlign('justify')}
+          >
+            <AlignJustify size={16} />
+          </button>
         </div>
-        <div> 
-          
-        </div>
+        <div></div>
       </div>
     </>
   );
