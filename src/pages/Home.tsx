@@ -38,9 +38,9 @@ import { Sidebar } from 'primereact/sidebar';
 import { TieredMenu } from 'primereact/tieredmenu';
 import React, { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
+import { Markdown } from 'tiptap-markdown';
 import { EditorToolbar } from '../components/EditorTollbar';
 import { db, Note } from '../lib/dexie';
-
 const lowlight = createLowlight(common);
 
 export default function Home() {
@@ -104,6 +104,13 @@ export default function Home() {
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
+      }),
+      Markdown.configure({
+        html: true,
+        linkify:true,
+        breaks: true,
+        transformCopiedText: true,
+        transformPastedText: true
       })
     ],
     onUpdate: ({ editor }) => {
@@ -306,7 +313,9 @@ export default function Home() {
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ) {
           handleImportDOCX(file);
-        } else {
+        } else if(fileType === "text/markdown") {
+          importFromMd(file);
+        }else {
           toast.error('Tipo de arquivo não suportado');
           return;
         }
@@ -348,6 +357,45 @@ export default function Home() {
     a.click();
     document.body.removeChild(a);
   };
+
+  const importFromMd = async (file: File) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const content = e.target?.result as string;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        
+        const date = new Date().toISOString();
+        const newNote = {
+          title: `${file.name.replace('.md', '')} - importado em ${date}`,
+          created_at: date,
+          updated_at: date,
+          content,
+        };
+        const id = await db.notes.add(newNote);
+        setCurrentNote({
+          ...newNote,
+          id: id,
+        });
+        editor?.commands.setContent(content || '');
+      };
+      reader.readAsText(file);
+    }
+  }
+
+  const exportToMd = () => {
+    const noteJSON = editor?.storage.markdown.getMarkdown()
+    const blob = new Blob([noteJSON || ''], {
+      type: 'text/markdown',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${currentNote.title}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
 
   useEffect(() => {
     if (!currentNote.id) {
@@ -392,7 +440,7 @@ export default function Home() {
       <input
         id="import-file"
         type="file"
-        accept=".html,application/json,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        accept=".md,.html,application/json,text/plain,text/markdown,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         onChange={handleImport}
         className="hidden"
       />
@@ -598,6 +646,14 @@ export default function Home() {
                       className: 'text-neutral-500 text-sm',
                       command: () => {
                         exportToTXT();
+                      },
+                    },
+                    {
+                      label: 'Markdown',
+                      icon: <FileText size={16} className="mr-2" />,
+                      className: 'text-neutral-500 text-sm',
+                      command: () => {
+                        exportToMd();
                       },
                     },
                   ]}
