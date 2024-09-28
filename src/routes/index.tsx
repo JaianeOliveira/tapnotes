@@ -7,5 +7,9 @@ export const routes = createBrowserRouter([
         path: "/",
         element: <Home />,
     },
+    {
+        path: '/:noteId',
+        element: <Home />
+    }
  
 ])

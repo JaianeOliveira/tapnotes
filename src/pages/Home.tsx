@@ -37,6 +37,7 @@ import mammoth from 'mammoth';
 import { Sidebar } from 'primereact/sidebar';
 import { TieredMenu } from 'primereact/tieredmenu';
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { Markdown } from 'tiptap-markdown';
 import { EditorToolbar } from '../components/EditorTollbar';
@@ -44,6 +45,9 @@ import { db, Note } from '../lib/dexie';
 const lowlight = createLowlight(common);
 
 export default function Home() {
+  const { noteId } = useParams()
+  const navigate = useNavigate();
+
   const menu = useRef<TieredMenu>(null);
 
   const [currentNote, setCurrentNote] = useState<Partial<Note>>({
@@ -148,6 +152,7 @@ export default function Home() {
         ...note,
         id: id,
       });
+      navigate(`/${id}`);
       editor?.commands.setContent('');
     } catch (err) {
       console.log(err);
@@ -397,6 +402,12 @@ export default function Home() {
     document.body.removeChild(a);
   }
 
+  const handleSelectNote = (note: Note) => {
+    setCurrentNote(note);
+    editor?.commands.setContent(note.content);
+    navigate(`/${note.id}`);
+  }
+
   useEffect(() => {
     if (!currentNote.id) {
       setNoteState('unknown');
@@ -433,6 +444,20 @@ export default function Home() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [currentNote.id, currentNote.content]);
+
+  useEffect(() => {
+    if (noteId) {
+      const note = notes?.find((note) => String(note.id) === noteId);
+      if (!note) {
+        navigate('/');
+        setCurrentNote({} as Note);
+      }
+    } else {
+      navigate('/');
+      setCurrentNote({} as Note);
+
+    }
+  }, [noteId])
 
 
   return (
@@ -569,10 +594,7 @@ export default function Home() {
                 .map((note) => (
                   <li
                     key={note.id}
-                    onClick={() => {
-                      setCurrentNote(note);
-                      editor?.commands.setContent(note.content);
-                    }}
+                    onClick={() => handleSelectNote(note)}
                     className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
                   >
                     {note.title}
