@@ -504,10 +504,7 @@ export default function Home() {
             .map((note) => (
               <li
                 key={note.id}
-                onClick={() => {
-                  setCurrentNote(note);
-                  editor?.commands.setContent(note.content);
-                }}
+                onClick={() => handleSelectNote(note)}  
                 className="px-4 py-2 rounded-md bg-neutral-200 shadow-md flex items-center w-full border border-neutral-200 hover:border-neutral-300 hover:shadow-lg transition-all duration-300 cursor-pointer"
               >
                 {note.title}
